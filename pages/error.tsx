@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 import InfoHeader from "../components/InfoHeader";
 import Footer from "../components/Footer";
 import { theme } from "../theme/theme";
@@ -60,6 +60,7 @@ const Button = styled.button`
 export default function Error() {
 
     const router = useRouter()
+    const {message} = router.query
 
     return(
         <>
@@ -68,7 +69,7 @@ export default function Error() {
             <CardContainer>
                 <h1>Houve um problema no agendamento</h1>
                 <Image src={Warning} alt="Houve um problema no agendamento"></Image>
-                <p>mensagem_error</p>
+                <p>{message}</p>
                 <Button onClick={() => router.push('/consulta')}>Fazer Novo Agendamento</Button>
             </CardContainer>
             <Footer/>

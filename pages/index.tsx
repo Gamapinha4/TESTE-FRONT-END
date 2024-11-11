@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Header from '../components/Header'
 import background from '../public/images/pokemon-hero.jpg'
-import styled, { createGlobalStyle } from 'styled-components'
+import styled from 'styled-components'
 import Footer from '../components/Footer'
 
 const ContainerImg = styled.div`

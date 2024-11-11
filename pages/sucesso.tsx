@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 import InfoHeader from "../components/InfoHeader";
 import Footer from "../components/Footer";
 import { theme } from "../theme/theme";
@@ -59,6 +59,7 @@ const Button = styled.button`
 export default function Sucesso() {
 
     const router = useRouter()
+    const {dataAtendimento, horaAtendimento, pokemons} = router.query
 
     return(
         <>
@@ -66,7 +67,7 @@ export default function Sucesso() {
             <CardContainer>
                 <h1>Consulta Agendada</h1>
                 <Image src={Check} alt="Consulta agendada"></Image>
-                <p>Seu agendamento para dia xx/xx/xxxx, às 00h00m, para 0x pokémons foi realizado com sucesso!</p>
+                <p>Seu agendamento para dia {dataAtendimento}, às {horaAtendimento}, para {(pokemons && pokemons.length > 6 ? '1' : pokemons?.length) || 0}x pokémons foi realizado com sucesso!</p>
                 <Button onClick={() => router.push('/consulta')}>Fazer Novo Agendamento</Button>
             </CardContainer>
             <Footer/>

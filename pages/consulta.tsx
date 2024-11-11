@@ -1,10 +1,9 @@
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 import InfoHeader from "../components/InfoHeader";
 import { theme } from "../theme/theme";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Footer from "../components/Footer";
@@ -117,11 +116,18 @@ type APICityProps = {
         align-items: center;
         width: 100%;
 
+        p {
+            margin-left: 8px;
+            color: red;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
     
-    ${Select} {
-        flex: 1;
-        margin-left: 38px;
-    }
+        ${Select} {
+            flex: 1;
+            margin-left: 38px;
+        }
     `
 
     const Button = styled.button<{ $variant: 'primary' | 'secundary'}>`
@@ -178,10 +184,10 @@ type APICityProps = {
         }
     `
 
-    const ErrorMsg = styled.p`
-       color: red;
-       font-size: 12px;
-       font-weight: 700;
+        const ErrorMsg = styled.p`
+        color: red;
+        font-size: 12px;
+        font-weight: 700;
     `
 
     const schema = yup.object({
@@ -211,8 +217,15 @@ export default function Consulta() {
 
     const router = useRouter()
 
-    const onSubmit: SubmitHandler<FormData> = () => {
-        router.push('/sucesso')
+    const onSubmit: SubmitHandler<FormData> = (data) => {
+        try {
+            router.push({pathname: '/sucesso', query: {...data, pokemons: (data.pokemons || []).filter(poke => poke !== '')}})
+        }catch(error) {
+
+            const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+
+            router.push({pathname: '/error', query: errorMessage})
+        }
     }
 
     const handleAddPokemon = () => {
@@ -257,6 +270,8 @@ export default function Consulta() {
     }, [])
 
     const numeroDePokemons = (getValues('pokemons') || []).filter(poke => poke !== '').length;
+
+    console.log(errors.pokemons)
 
     return(
         <div>
@@ -313,8 +328,9 @@ export default function Consulta() {
                                 </Select>
                             )}>
                         </Controller>
-                        {errors.pokemons && <ErrorMsg>{errors.pokemons.message}</ErrorMsg>}
+                        {errors.pokemons && errors.pokemons[index] && <p>{errors.pokemons[index]?.message}</p>}
                         </InputField>
+                        
                     ))}
                     {pokemons.length < 6 && (
                         <Button $variant={'primary'} type="button" onClick={handleAddPokemon}>

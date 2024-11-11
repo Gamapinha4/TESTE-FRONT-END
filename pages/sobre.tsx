@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle } from "styled-components"
+import styled from "styled-components"
 import InfoHeader from "../components/InfoHeader"
 import Footer from "../components/Footer"
 
