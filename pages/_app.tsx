@@ -1,6 +1,5 @@
 import type { AppProps } from 'next/app'
 import { createGlobalStyle } from 'styled-components'
-import { theme } from '../theme/theme'
 
 const ResetCSSandScrollView = createGlobalStyle`
   body {

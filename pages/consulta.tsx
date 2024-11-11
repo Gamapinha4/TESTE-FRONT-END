@@ -213,6 +213,8 @@ export default function Consulta() {
     const [schedulingData, setSchedulingData] = useState<string[]>([])
     const [schedulingTime, setSchedulingTime] = useState<string[]>([])
 
+    const [loading, setLoading] = useState(false)
+
     watch('pokemons') || [];
 
     const router = useRouter()
@@ -246,6 +248,8 @@ export default function Consulta() {
 
     async function loadPokemonsAPI() {
 
+        setLoading(true)
+
         try {
             const {pokemonsList,
                    regiaoList,
@@ -262,6 +266,8 @@ export default function Consulta() {
 
         }catch(error) {
             return toast.error('Não foi possível carregar os dados, tente novamente mais tarde');
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -271,7 +277,9 @@ export default function Consulta() {
 
     const numeroDePokemons = (getValues('pokemons') || []).filter(poke => poke !== '').length;
 
-    console.log(errors.pokemons)
+    if (loading) {
+        return <h1>Carregando...</h1>
+    }
 
     return(
         <div>

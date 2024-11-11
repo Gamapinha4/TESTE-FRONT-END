@@ -5,6 +5,7 @@ import { theme } from "../theme/theme";
 import Image from "next/image";
 import Warning from '../public/warning.svg'
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 const CardContainer = styled.div`
     display: flex;

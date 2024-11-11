@@ -5,6 +5,7 @@ import { theme } from "../theme/theme";
 import Image from "next/image";
 import Check from '../public/check.svg'
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 const CardContainer = styled.div`
     display: flex;
@@ -60,6 +61,12 @@ export default function Sucesso() {
 
     const router = useRouter()
     const {dataAtendimento, horaAtendimento, pokemons} = router.query
+
+    useEffect(() => {
+        if (!dataAtendimento || !horaAtendimento || !pokemons) {
+            router.push('/consulta')
+        }
+    })
 
     return(
         <>
