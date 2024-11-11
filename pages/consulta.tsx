@@ -1,7 +1,7 @@
 import styled, { createGlobalStyle } from "styled-components";
 import InfoHeader from "../components/InfoHeader";
 import { theme } from "../theme/theme";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
@@ -10,6 +10,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import Footer from "../components/Footer";
 import { container } from "../inversify/Container";
 import { Data } from "../inversify/Data";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type FormData = {
     pokemons?: string[];
@@ -194,7 +196,7 @@ type APICityProps = {
 
 export default function Consulta() {
 
-    const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    const { register, handleSubmit, formState: { errors }, getValues, watch, control } = useForm<FormData>({
         resolver: yupResolver(schema)
     })
     const [pokemons, setPokemons] = useState<string[]>(['']);
@@ -205,16 +207,25 @@ export default function Consulta() {
     const [schedulingData, setSchedulingData] = useState<string[]>([])
     const [schedulingTime, setSchedulingTime] = useState<string[]>([])
 
+    watch('pokemons') || [];
+
     const router = useRouter()
 
-    const onSubmit: SubmitHandler<FormData> = (data) => {
-        console.log(data)
+    const onSubmit: SubmitHandler<FormData> = () => {
         router.push('/sucesso')
     }
 
     const handleAddPokemon = () => {
-        if (pokemons.length < 6) {
-            setPokemons([...pokemons, ''])
+        const listaPokemons = getValues("pokemons") || [];
+        const campoVazio = listaPokemons[listaPokemons.length - 1];
+    
+        
+        if (campoVazio === "") {
+            return toast.error('Preencha o campo anterior para adicionar um novo pokémon');
+        }
+    
+        if (listaPokemons.length < 6) {
+            setPokemons([...listaPokemons, '']);
         }
     };
 
@@ -237,13 +248,15 @@ export default function Consulta() {
             setSchedulingTime(schedulingTime.data)
 
         }catch(error) {
-            console.log("Não foi possível buscar os dados")
+            return toast.error('Não foi possível carregar os dados, tente novamente mais tarde');
         }
     }
 
     useEffect(() => {
         loadPokemonsAPI()
     }, [])
+
+    const numeroDePokemons = (getValues('pokemons') || []).filter(poke => poke !== '').length;
 
     return(
         <div>
@@ -291,12 +304,15 @@ export default function Consulta() {
                     {pokemons.map((_, index) => (
                         <InputField key={index}>
                             <Label>Pokémon {index + 1}</Label>
-                            <Select {...register(`pokemons.${index}`)}>
-                            <option value="">Selecione um pokémon</option>
-                            {pokemonsList.map((pokemon) => (
-                                <option key={pokemon.name} value={pokemon.name}>{pokemon.name.slice(0,1).toUpperCase() + pokemon.name.slice(1, pokemon.name.length)}</option>
-                            ))}
-                        </Select>
+                            <Controller name={`pokemons.${index}`} control={control} defaultValue="" render={({ field }) => (
+                                <Select {...field}>
+                                    <option value="">Selecione um pokémon</option>
+                                    {pokemonsList.map((pokemon) => (
+                                        <option key={pokemon.name} value={pokemon.name}>{pokemon.name.slice(0,1).toUpperCase() + pokemon.name.slice(1, pokemon.name.length)}</option>
+                                    ))}
+                                </Select>
+                            )}>
+                        </Controller>
                         {errors.pokemons && <ErrorMsg>{errors.pokemons.message}</ErrorMsg>}
                         </InputField>
                     ))}
@@ -336,7 +352,7 @@ export default function Consulta() {
                 
                 <InfomationField>
                     <h1>Números de pokemons a serem atendidos</h1>
-                    <h1>0{pokemons.length}</h1>
+                    <h1>{numeroDePokemons}</h1>
                 </InfomationField>
                 <InfomationField>
                     <h1>Atendimento unitário por pokémon</h1>
@@ -344,21 +360,21 @@ export default function Consulta() {
                 </InfomationField>
                 <InfomationField>
                     <h1>Subtotal</h1>
-                    <h1>R$ {pokemons.length * 70},00</h1>
+                    <h1>R$ {(numeroDePokemons * 70).toFixed(2)}</h1>
                 </InfomationField>
                 <InfomationField>
                     <h1>Taxa geracional*:</h1>
-                    <h1>R$ {((pokemons.length * 70) * 0.03).toFixed(2)}</h1>
+                    <h1>R$ {((numeroDePokemons * 70) * 0.03).toFixed(2)}</h1>
                 </InfomationField>
                 <InfomationField>
                     <p>*adicionamos uma taxa de 3%, multiplicado pelo número da geração mais alta do time, com limite de até 30%</p>
                 </InfomationField>
                 <InfomationField>
-                    <h2>Valor Total: R$ {((pokemons.length * 70) + (pokemons.length * 70) * 0.03).toFixed(2)}</h2>
-                    <Button $variant={'secundary'} type="submit" >Concluir Agendamento</Button>
+                    <h2>Valor Total: R$ {((numeroDePokemons * 70) + (numeroDePokemons * 70) * 0.03).toFixed(2)}</h2>
+                    <Button $variant={'secundary'} type="submit">Concluir Agendamento</Button>
                 </InfomationField>
-                
                 <Footer/>
+                <ToastContainer/>
             </form>
         </div>
     )
