@@ -1,20 +1,25 @@
 import styled, { createGlobalStyle } from "styled-components";
-import Header from "../components/Header";
 import InfoHeader from "../components/InfoHeader";
 import { theme } from "../theme/theme";
-import { set, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import axios from "axios";
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import Footer from "../components/Footer";
+import { container } from "../inversify/Container";
+import { Data } from "../inversify/Data";
 
 type FormData = {
+    pokemons?: string[];
     nome: string;
     sobrenome: string;
     regiao: string;
     cidade: string;
-    pokemons: string[]
-}
+    dataAtendimento: string;
+    horaAtendimento: string;
+};
 
 type APIPokemonProps = {
     name: string;
@@ -31,22 +36,11 @@ type APICityProps = {
     url: string;
 }
 
-const ResetCSS = createGlobalStyle`
-      body {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-    `
-
     const Title = styled.h1`
         position: relative;
         text-align: center;
         top: 32px;
         margin: 0 auto;
-        font-family: 'Inter';
         font-size: 24px;
         font-weight: 600;
     `
@@ -68,7 +62,6 @@ const ResetCSS = createGlobalStyle`
     `
 
     const Label = styled.label`
-        font-family: 'Inter';
         font-size: 12px;
         font-weight: 700;
         color: ${theme.colors.label};
@@ -82,7 +75,6 @@ const ResetCSS = createGlobalStyle`
         border-radius: 8px;
         border: 1px solid ${theme.colors.placeholder};
         padding: 0 16px;
-        font-family: 'Inter';
     `
 
     const Select = styled.select`
@@ -91,7 +83,6 @@ const ResetCSS = createGlobalStyle`
         border-radius: 8px;
         border: 1px solid ${theme.colors.placeholder};
         padding: 0 16px;
-        font-family: 'Inter';
     `
 
     const TimeContainer = styled.div`
@@ -102,14 +93,14 @@ const ResetCSS = createGlobalStyle`
         margin: 80px auto 0 auto;
 
         h1 {
-            font-family: 'Inter';
+
             font-size: 16px;
             font-weight: 700;
             color: ${theme.colors.label};
         }
         
         p {
-            font-family: 'Inter';
+
             font-size: 16px;
             font-weight: 500;
             color: ${theme.colors.subtitle};
@@ -131,14 +122,13 @@ const ResetCSS = createGlobalStyle`
     }
     `
 
-    const Button = styled.button<{variant: 'primary' | 'secundary'}>`
+    const Button = styled.button<{ $variant: 'primary' | 'secundary'}>`
         width: 50%;
         height: 45px;
         border-radius: 30px;
-        border: 1px solid ${prop => prop.variant === 'primary' ? theme.colors.border : 'transparent'};
-        background-color: ${prop => prop.variant === 'primary' ? 'transparent' : theme.colors.primary};
-        color: ${prop => prop.variant === 'primary' ? 'black' : 'white'};
-        font-family: 'Inter';
+        border: 1px solid ${prop => prop.$variant === 'primary' ? theme.colors.border : 'transparent'};
+        background-color: ${prop => prop.$variant === 'primary' ? 'transparent' : theme.colors.primary};
+        color: ${prop => prop.$variant === 'primary' ? 'black' : 'white'};
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
@@ -166,29 +156,47 @@ const ResetCSS = createGlobalStyle`
         margin: 0 auto;
 
         h2 {
-            font-family: 'Inter';
+
             font-size: 24px;
             font-weight: 600;
             color: black;
         }
 
         h1 {
-            font-family: 'Inter';
+
             font-size: 16px;
             font-weight: 500;
             color: ${theme.colors.subtitle};
         }
         p {
-            font-family: 'Inter';
+
             font-size: 8px;
             font-weight: 400;
             color: ${theme.colors.subtitle};
         }
     `
 
+    const ErrorMsg = styled.p`
+       color: red;
+       font-size: 12px;
+       font-weight: 700;
+    `
+
+    const schema = yup.object({
+        nome: yup.string().required('Nome é obrigatório'),
+        sobrenome: yup.string().required('Sobrenome é obrigatório'),
+        regiao: yup.string().required('Selecione uma região'),
+        cidade: yup.string().required('Selecione uma cidade'),
+        pokemons: yup.array().of(yup.string().required('Selecione um pokémon')).min(1, 'Selecione ao menos um pokémon').max(6, 'Selecione no máximo 6 pokémons'),
+        dataAtendimento: yup.string().required('Selecione uma data'),
+        horaAtendimento: yup.string().required('Selecione um horário')
+    });
+
 export default function Consulta() {
 
-    const { register, handleSubmit, formState: { errors } } = useForm<FormData>()
+    const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+        resolver: yupResolver(schema)
+    })
     const [pokemons, setPokemons] = useState<string[]>(['']);
     const [regiao, setRegiao] = useState<APIRegionProps[]>([]);
     const [cidade, setCidade] = useState<APICityProps[]>([]);
@@ -210,74 +218,70 @@ export default function Consulta() {
         }
     };
 
-    async function loadTimeList() {
+    const dataService = container.get(Data);
+
+    async function loadPokemonsAPI() {
+
         try {
-            const response = await axios.post('/api/scheduling/time', {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-    
-            setSchedulingTime(response.data)
-        } catch (error) {
-            throw error
+            const {pokemonsList,
+                   regiaoList,
+                   cidadeList,
+                   schedulingData,
+                   schedulingTime} 
+            = await dataService.fetchPokemonAPI();
+
+            setPokemonsList(pokemonsList.data.results)
+            setRegiao(regiaoList.data.results)
+            setCidade(cidadeList.data.results)
+            setSchedulingData(schedulingData.data)
+            setSchedulingTime(schedulingTime.data)
+
+        }catch(error) {
+            console.log("Não foi possível buscar os dados")
         }
     }
 
     useEffect(() => {
-    async function loadPokemonsAPI() {
-        try {
-            const pokemonsList = await axios.get('https://pokeapi.co/api/v2/pokemon?offset=20&limit=20')
-            setPokemonsList(pokemonsList.data.results)
-            const regiaoList = await axios.get('https://pokeapi.co/api/v2/region/')
-            setRegiao(regiaoList.data.results)
-            const cidadeList = await axios.get('https://pokeapi.co/api/v2/location/')
-            setCidade(cidadeList.data.results)
-
-            const schedulingData = await axios.get('http://localhost:3000/api/scheduling/date')
-            setSchedulingData(schedulingData.data)
-        } catch (error) {
-            throw error
-        }
-    }
-    loadTimeList()
-    loadPokemonsAPI()
+        loadPokemonsAPI()
     }, [])
 
     return(
         <div>
-            <ResetCSS/>
             <InfoHeader title="Agendar Consulta" subtitle="Recupere seus pokémons em 5 segundos"/>
             <Title>Preencha o formulário abaixo para agendar sua consulta</Title>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <GridContainer>
                     <ContainerInputLabel>
                         <Label>Nome</Label>
-                        <Input placeholder="Digite seu nome" {...register('nome', { required: 'Nome é obrigatório'})}/>
+                        <Input placeholder="Digite seu nome" {...register('nome')}/>
+                        {errors.nome && <ErrorMsg>{errors.nome.message}</ErrorMsg>}
                     </ContainerInputLabel>
                     <ContainerInputLabel>
                         <Label>Sobrenome</Label>
-                        <Input placeholder="Digite seu sobrenome" {...register('sobrenome', { required: 'Sobrenome é obrigatório'})}/>
+                        <Input placeholder="Digite seu sobrenome" {...register('sobrenome')}/>
+                        {errors.sobrenome && <ErrorMsg>{errors.sobrenome.message}</ErrorMsg>}
                     </ContainerInputLabel>
                     <ContainerInputLabel>
                         <Label>Região</Label>
-                        <Select {...register('regiao', { required: 'Selecione uma região'})}>
+                        <Select {...register('regiao')}>
                         <option value="">Selecione uma região</option>
                             {regiao.map((regiao) => {
                             return(
                                 <option key={regiao.name} value={regiao.name}>{regiao.name.slice(0,1).toUpperCase() + regiao.name.slice(1, regiao.name.length)}</option>
                             )})}
                         </Select>
+                        {errors.regiao && <ErrorMsg>{errors.regiao.message}</ErrorMsg>}
                     </ContainerInputLabel>
                     <ContainerInputLabel>
                         <Label>Cidade</Label>
-                        <Select {...register('cidade', { required: 'Selecione uma Cidade'})}>
+                        <Select {...register('cidade')}>
                         <option value="">Selecione uma cidade</option>
                             {cidade.map((cidade) => {
                             return(
                                 <option key={cidade.name} value={cidade.name}>{cidade.name.slice(0,1).toUpperCase() + cidade.name.slice(1, cidade.name.length)}</option>
                             )})}
                         </Select>
+                        {errors.cidade && <ErrorMsg>{errors.cidade.message}</ErrorMsg>}
                     </ContainerInputLabel>
                 </GridContainer>
                 <TimeContainer>
@@ -287,16 +291,17 @@ export default function Consulta() {
                     {pokemons.map((_, index) => (
                         <InputField key={index}>
                             <Label>Pokémon {index + 1}</Label>
-                            <Select {...register(`pokemons.${index}`, { required: 'Selecione um pokemon'})}>
+                            <Select {...register(`pokemons.${index}`)}>
                             <option value="">Selecione um pokémon</option>
                             {pokemonsList.map((pokemon) => (
                                 <option key={pokemon.name} value={pokemon.name}>{pokemon.name.slice(0,1).toUpperCase() + pokemon.name.slice(1, pokemon.name.length)}</option>
                             ))}
                         </Select>
+                        {errors.pokemons && <ErrorMsg>{errors.pokemons.message}</ErrorMsg>}
                         </InputField>
                     ))}
                     {pokemons.length < 6 && (
-                        <Button variant={'primary'} type="button" onClick={handleAddPokemon}>
+                        <Button $variant={'primary'} type="button" onClick={handleAddPokemon}>
                             Adicionar novo pokémon ao time... <span>+</span>
                         </Button>
                     )}
@@ -304,7 +309,7 @@ export default function Consulta() {
                 <GridContainer>
                     <ContainerInputLabel>
                         <Label>Data</Label>
-                        <Select>
+                        <Select {...register('dataAtendimento')}>
                             <option value="">Selecione uma data</option>
                             {schedulingData.map((scheduling) => {
                                 return(
@@ -312,10 +317,11 @@ export default function Consulta() {
                                 )
                             })}
                         </Select>
+                        {errors.dataAtendimento && <ErrorMsg>{errors.dataAtendimento.message}</ErrorMsg>}
                     </ContainerInputLabel>
                     <ContainerInputLabel>
                         <Label>Hora</Label>
-                        <Select>
+                        <Select {...register('horaAtendimento')}>
                             <option value="">Selecione um horário</option>
                             {schedulingTime.map((scheduling) => {
                                 return(
@@ -323,6 +329,7 @@ export default function Consulta() {
                                 )
                             })}
                         </Select>
+                        {errors.horaAtendimento && <ErrorMsg>{errors.horaAtendimento.message}</ErrorMsg>}
                     </ContainerInputLabel>
                 </GridContainer>
                 <Separator/>
@@ -348,9 +355,10 @@ export default function Consulta() {
                 </InfomationField>
                 <InfomationField>
                     <h2>Valor Total: R$ {((pokemons.length * 70) + (pokemons.length * 70) * 0.03).toFixed(2)}</h2>
-                    <Button variant={'secundary'} type="submit" >Concluir Agendamento</Button>
+                    <Button $variant={'secundary'} type="submit" >Concluir Agendamento</Button>
                 </InfomationField>
                 
+                <Footer/>
             </form>
         </div>
     )

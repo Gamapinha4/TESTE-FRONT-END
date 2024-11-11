@@ -16,7 +16,6 @@ const HeaderStyled = styled.header`
 `
 
 const Button = styled.button<{ $type?: 'primary' | 'secundary' | 'tertiary', $isActive?: boolean}>`
-    font-family: 'Inter', sans-serif;
     position: relative;
 ${prop => prop.$type === 'primary' && `
     background-color: ${theme.colors.primary};

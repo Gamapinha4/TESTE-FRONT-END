@@ -30,7 +30,6 @@ const NavigationBar = styled.p`
     top: 26px;
     font-size: 12px;
     font-weight: 700;
-    font-family: Inter;
 
     color: white;
 
@@ -50,7 +49,6 @@ const Title = styled.h1`
 
     font-size: 32px;
     font-weight: 700;
-    font-family: 'Inter';
     color: white;
 `
 
@@ -61,7 +59,6 @@ const SubTitle = styled.h2`
 
     font-size: 14px;
     font-weight: 100;
-    font-family: Inter;
     color: white;
 `
 

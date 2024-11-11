@@ -6,15 +6,6 @@ import Image from "next/image";
 import Warning from '../public/warning.svg'
 import { useRouter } from "next/router";
 
-const ResetCSS = createGlobalStyle`
-      body {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-    `
 const CardContainer = styled.div`
     display: flex;
     justify-content: center;
@@ -30,8 +21,6 @@ const CardContainer = styled.div`
     justify-content: center;
     text-align: center;
     flex-direction: column;
-
-    font-family: 'Inter';
 
     h1 {
         font-size: 20px;
@@ -74,7 +63,7 @@ export default function Error() {
 
     return(
         <>
-            <ResetCSS/>
+
             <InfoHeader title="Agendar Consulta" subtitle="Recupere seus pokémons em 5 segundos."/>
             <CardContainer>
                 <h1>Houve um problema no agendamento</h1>

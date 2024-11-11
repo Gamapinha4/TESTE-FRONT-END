@@ -14,7 +14,6 @@ const FooterContainer = styled.div`
 const Text = styled.p`
     font-size: 14px;
     font-weight: 400;
-    font-family: 'Inter';
     display: flex;
     justify-content: center;
     color: white;

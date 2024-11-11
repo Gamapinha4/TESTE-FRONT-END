@@ -2,16 +2,6 @@ import styled, { createGlobalStyle } from "styled-components"
 import InfoHeader from "../components/InfoHeader"
 import Footer from "../components/Footer"
 
-const ResetCSS = createGlobalStyle`
-  body {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-`
-
 const ContainerText = styled.div`
     display: flex;
     flex-direction: column;
@@ -19,7 +9,6 @@ const ContainerText = styled.div`
     justify-content: center;
     align-items: left;
     max-width: 400px;
-    font-family: 'Inter';
     margin-bottom: 40px;
 `
 
@@ -27,7 +16,6 @@ export default function Sobre() {
     
     return(
         <div>
-            <ResetCSS/>
             <InfoHeader title={'Quem somos'} subtitle={'A maior rede de tratamento pokémon.'}/>
                 <ContainerText>
                     <h2>O Centro Pokémon</h2>

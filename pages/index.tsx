@@ -4,13 +4,6 @@ import background from '../public/images/pokemon-hero.jpg'
 import styled, { createGlobalStyle } from 'styled-components'
 import Footer from '../components/Footer'
 
-const ResetCSS = createGlobalStyle`
-  body {
-    margin: 0;
-    padding: 0;
-  }
-`
-
 const ContainerImg = styled.div`
   position: relative;
   width: 100%;
@@ -19,7 +12,6 @@ const ContainerImg = styled.div`
 `
 
 const Text = styled.h1`
-  font-family: 'Inter';
   font-size: 32px;
   color: white;
   font-weight: 700;
@@ -40,7 +32,6 @@ const ImageStyled = styled(Image)`
 export default function Home() {
   return (
     <>
-      <ResetCSS/>
       <Header/>
       <ContainerImg>
         <ImageStyled src={background} alt='background'/>
